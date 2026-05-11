@@ -253,8 +253,74 @@ fs.writeFileSync(bankDataPath, JSON.stringify(bankData), "utf8");
 
 break;
 
+case "setmoney": {
+  const isAdmin = global.GoatBot.config.adminBot.includes(event.senderID);
+  if (!isAdmin) return message.reply("╔════ஜ۩۞۩ஜ═══╗\n\n[🏦 Bank 🏦]\n\n❏শুধু Admin এই command ব্যবহার করতে পারবে! 🔒\n\n╚════ஜ۩۞۩ஜ═══╝");
+  const tID = Object.keys(event.mentions || {})[0] || event.messageReply?.senderID;
+  if (!tID) return message.reply("╔════ஜ۩۞۩ஜ═══╗\n\n[🏦 Bank 🏦]\n\n❏User mention করুন!\nExample: .bank setmoney @user 50000\n\n╚════ஜ۩۞۩ஜ═══╝");
+  const setAmt = parseInt(args[1]);
+  if (isNaN(setAmt) || setAmt < 0) return message.reply("╔════ஜ۩۞۩ஜ═══╗\n\n[🏦 Bank 🏦]\n\n❏Valid amount দিন!\n\n╚════ஜ۩۞۩ஜ═══╝");
+  if (!bankData[parseInt(tID)]) bankData[parseInt(tID)] = { bank: 0, lastInterestClaimed: Date.now() };
+  bankData[parseInt(tID)].bank = setAmt;
+  await usersData.set(tID, { money: setAmt });
+  fs.writeFileSync(bankDataPath, JSON.stringify(bankData), "utf8");
+  const ti = await api.getUserInfo(tID);
+  const tn = ti[tID]?.name || tID;
+  return message.reply(`╔════ஜ۩۞۩ஜ═══╗\n\n[🏦 Bank 🏦]\n\n✅ ${tn} এর balance $${setAmt.toLocaleString()} set!\n\n╚════ஜ۩۞۩ஜ═══╝`);
+}
+
+case "addmoney": {
+  const isAdmin2 = global.GoatBot.config.adminBot.includes(event.senderID);
+  if (!isAdmin2) return message.reply("╔════ஜ۩۞۩ஜ═══╗\n\n[🏦 Bank 🏦]\n\n❏শুধু Admin এই command ব্যবহার করতে পারবে! 🔒\n\n╚════ஜ۩۞۩ஜ═══╝");
+  const tID2 = Object.keys(event.mentions || {})[0] || event.messageReply?.senderID;
+  if (!tID2) return message.reply("╔════ஜ۩۞۩ஜ═══╗\n\n[🏦 Bank 🏦]\n\n❏User mention করুন!\nExample: .bank addmoney @user 10000\n\n╚════ஜ۩۞۩ஜ═══╝");
+  const addAmt = parseInt(args[1]);
+  if (isNaN(addAmt) || addAmt <= 0) return message.reply("╔════ஜ۩۞۩ஜ═══╗\n\n[🏦 Bank 🏦]\n\n❏Valid amount দিন!\n\n╚════ஜ۩۞۩ஜ═══╝");
+  if (!bankData[parseInt(tID2)]) bankData[parseInt(tID2)] = { bank: 0, lastInterestClaimed: Date.now() };
+  bankData[parseInt(tID2)].bank = (bankData[parseInt(tID2)].bank || 0) + addAmt;
+  const curM2 = await usersData.get(tID2, "money");
+  await usersData.set(tID2, { money: (curM2 || 0) + addAmt });
+  fs.writeFileSync(bankDataPath, JSON.stringify(bankData), "utf8");
+  const ti2 = await api.getUserInfo(tID2);
+  const tn2 = ti2[tID2]?.name || tID2;
+  return message.reply(`╔════ஜ۩۞۩ஜ═══╗\n\n[🏦 Bank 🏦]\n\n✅ ${tn2} কে $${addAmt.toLocaleString()} add! New: $${bankData[parseInt(tID2)].bank.toLocaleString()}\n\n╚════ஜ۩۞۩ஜ═══╝`);
+}
+
+case "setall": {
+  const isAdmin3 = global.GoatBot.config.adminBot.includes(event.senderID);
+  if (!isAdmin3) return message.reply("╔════ஜ۩۞۩ஜ═══╗\n\n[🏦 Bank 🏦]\n\n❏শুধু Admin এই command ব্যবহার করতে পারবে! 🔒\n\n╚════ஜ۩۞۩ஜ═══╝");
+  const saAmt = parseInt(args[1]);
+  if (isNaN(saAmt) || saAmt < 0) return message.reply("╔════ஜ۩۞۩ஜ═══╗\n\n[🏦 Bank 🏦]\n\n❏Valid amount দিন!\n\n╚════ஜ۩۞۩ஜ═══╝");
+  const all3 = await usersData.getAll();
+  for (const u of all3) {
+    const uid3 = u.userID;
+    if (!bankData[uid3]) bankData[uid3] = { bank: 0, lastInterestClaimed: Date.now() };
+    bankData[uid3].bank = saAmt;
+    await usersData.set(uid3, { money: saAmt });
+  }
+  fs.writeFileSync(bankDataPath, JSON.stringify(bankData), "utf8");
+  return message.reply(`╔════ஜ۩۞۩ஜ═══╗\n\n[🏦 Bank 🏦]\n\n✅ সকল ${all3.length} user এর balance $${saAmt.toLocaleString()} set!\n👑 Admin power!\n\n╚════ஜ۩۞۩ஜ═══╝`);
+}
+
+case "addall": {
+  const isAdmin4 = global.GoatBot.config.adminBot.includes(event.senderID);
+  if (!isAdmin4) return message.reply("╔════ஜ۩۞۩ஜ═══╗\n\n[🏦 Bank 🏦]\n\n❏শুধু Admin এই command ব্যবহার করতে পারবে! 🔒\n\n╚════ஜ۩۞۩ஜ═══╝");
+  const aaAmt = parseInt(args[1]);
+  if (isNaN(aaAmt) || aaAmt <= 0) return message.reply("╔════ஜ۩۞۩ஜ═══╗\n\n[🏦 Bank 🏦]\n\n❏Valid amount দিন!\n\n╚════ஜ۩۞۩ஜ═══╝");
+  const all4 = await usersData.getAll();
+  for (const u of all4) {
+    const uid4 = u.userID;
+    if (!bankData[uid4]) bankData[uid4] = { bank: 0, lastInterestClaimed: Date.now() };
+    bankData[uid4].bank = (bankData[uid4].bank || 0) + aaAmt;
+    const curM4 = await usersData.get(uid4, "money");
+    await usersData.set(uid4, { money: (curM4 || 0) + aaAmt });
+  }
+  fs.writeFileSync(bankDataPath, JSON.stringify(bankData), "utf8");
+  return message.reply(`╔════ஜ۩۞۩ஜ═══╗\n\n[🏦 Bank 🏦]\n\n✅ সকল ${all4.length} user কে $${aaAmt.toLocaleString()} করে add!\n👑 Done!\n\n╚════ஜ۩۞۩ஜ═══╝`);
+}
+
 default:
-  return message.reply("╔════ஜ۩۞۩ஜ═══╗\n\n[🏦 Bank 🏦]\n\n❏Please use one of the following valid commands: Deposit, Withdraw, Balance, Interest, Transfer, Richest, Loan, PayLoan\n\n╚════ஜ۩۞۩ஜ═══╝");
+  return message.reply("╔════ஜ۩۞۩ஜ═══╗\n\n[🏦 Bank 🏦]\n\n❏Valid commands:\ndeposit, withdraw, balance, interest, transfer, richest, loan, payloan\n\n👑 Admin only:\nsetmoney @user [amt]\naddmoney @user [amt]\nsetall [amt] | addall [amt]\n\n╚════ஜ۩۞۩ஜ═══╝");
 }
   }
 };

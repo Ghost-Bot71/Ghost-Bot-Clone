@@ -2,82 +2,75 @@ const axios = require("axios");
 const fs = require("fs");
 const path = require("path");
 
-const mahmud = async () => {
-  const base = await axios.get(
-    "https://raw.githubusercontent.com/mahmudx7/HINATA/main/baseApiUrl.json"
-  );
-  return base.data.mahmud;
+const getApiBase = async () => {
+  try {
+    const base = await axios.get(
+      "https://raw.githubusercontent.com/mahmudx7/HINATA/main/baseApiUrl.json",
+      { timeout: 8000 }
+    );
+    return base.data.mahmud;
+  } catch {
+    return "https://hinata-api.vercel.app";
+  }
 };
-
-/**
- * @author MahMUD
- * @author: do not delete it
- */
 
 module.exports = {
   config: {
     name: "kiss",
-    version: "1.7",
+    version: "2.0",
     author: "Rakib Islam",
     countDown: 5,
     role: 0,
     longDescription: "Generate anime-style kiss image",
     category: "love",
-    guide: "{pn} @mention"
+    guide: "{pn} @mention or reply"
   },
 
   onStart: async function ({ message, event, api }) {
     try {
-      if (module.exports.config.author.trim() !== obfuscatedAuthor) {
-        return api.sendMessage(
+      const { mentions, messageReply, senderID, threadID, messageID } = event;
 
-          event.threadID,
-          event.messageID
-        );
-      }
-
-      const mention = Object.keys(event.mentions);
       let targetID;
-      if (mention.length > 0) {
-        targetID = mention[0];
-      } else if (event.type === "message_reply") {
-        targetID = event.messageReply?.senderID;
+      const mentionKeys = Object.keys(mentions || {});
+      if (mentionKeys.length > 0) {
+        targetID = mentionKeys[0];
+      } else if (messageReply?.senderID) {
+        targetID = messageReply.senderID;
       }
+
       if (!targetID) {
-        return message.reply("💋 কাউকে @mention করুন অথবা কারো message এ reply দিন!\nExample: .kiss @name");
+        return message.reply("💋 @mention করুন অথবা কারো message এ reply দিন!\nExample: .kiss @name");
       }
-      if (targetID === event.senderID) {
+      if (targetID === senderID) {
         return message.reply("😅 নিজেকে kiss করা যাবে না!");
       }
-      const senderID = event.senderID;
 
-      const base = await mahmud();
+      const base = await getApiBase();
       const apiURL = `${base}/api/kiss`;
 
       const response = await axios.post(
         apiURL,
         { senderID, targetID },
-        { responseType: "arraybuffer" }
+        { responseType: "arraybuffer", timeout: 15000 }
       );
 
-      const imgPath = path.join(
-        __dirname,
-        `kiss_${senderID}_${targetID}.png`
-      );
+      const imgPath = path.join(__dirname, `kiss_${senderID}_${targetID}.png`);
       fs.writeFileSync(imgPath, Buffer.from(response.data, "binary"));
 
+      const targetInfo = await api.getUserInfo(targetID);
+      const targetName = targetInfo[targetID]?.name || "Friend";
+
       message.reply({
-        body: "💋 Here’s your kiss image!",
-        attachment: fs.createReadStream(imgPath)
+        body: `💋 ${targetName} কে kiss করা হলো!`,
+        attachment: fs.createReadStream(imgPath),
+        mentions: [{ tag: targetName, id: targetID }]
       });
 
-      setTimeout(() => {
-        if (fs.existsSync(imgPath)) fs.unlinkSync(imgPath);
-      }, 10000);
+      setTimeout(() => { try { fs.unlinkSync(imgPath); } catch {} }, 10000);
 
     } catch (err) {
-      console.error("Error in kiss command:", err.message || err);
-      message.reply("🥹 error, contact MahMUD.");
+      console.error("KISS ERROR:", err.message);
+      message.reply("❌ Kiss image তৈরিতে সমস্যা হয়েছে। আবার try করুন!");
     }
   }
 };

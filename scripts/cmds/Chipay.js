@@ -32,14 +32,6 @@ module.exports = {
       return api.sendMessage("🤦‍♂️ | আরে ভাই, কাকে চিপায় নিবেন তারে তো মেনশন দেন নাই!", threadID, messageID);
     }
 
-/* --- [ 🔐 INTERNAL_SECURE_METADATA ] ---
- * 🤖 BOT NAME: MILON BOT
- * 👤 OWNER: MILON HASAN
- * 🔗 FACEBOOK: https://www.facebook.com/share/17uGq8qVZ9/
- * 📞 WHATSAPP: +880 1912603270
- * 📍 LOCATION: NARAYANGANJ, BD
- * --------------------------------------- */
-
     const imgPath = path.join(cacheDir, `chipay_${Date.now()}.png`);
 
     try {

@@ -1,42 +1,49 @@
 module.exports = {
-	config: {
-		name: "all",
-		version: "1.2",
-		author: "Rakib Islam",
-		countDown: 5,
-		role: 1,
-		description: {
-			vi: "Tag tất cả thành viên trong nhóm chat của bạn",
-			en: "Tag all members in your group chat"
-		},
-		category: "box chat",
-		guide: {
-			vi: "   {pn} [nội dung | để trống]",
-			en: "   {pn} [content | empty]"
-		}
-	},
+  config: {
+    name: "all",
+    version: "2.0",
+    author: "Rakib Islam",
+    countDown: 5,
+    role: 1,
+    description: {
+      en: "Tag all members in group with a message"
+    },
+    category: "box chat",
+    guide: {
+      en: "{pn} [message] — Tag everyone with your message"
+    }
+  },
 
-	onStart: async function ({ message, event, args }) {
-		const { participantIDs } = event;
-		const lengthAllUser = participantIDs.length;
-		const mentions = [];
-		let body = args.join(" ") || "@all";
-		let bodyLength = body.length;
-		let i = 0;
-		for (const uid of participantIDs) {
-			let fromIndex = 0;
-			if (bodyLength < lengthAllUser) {
-				body += body[bodyLength - 1];
-				bodyLength++;
-			}
-			if (body.slice(0, i).lastIndexOf(body[i]) != -1)
-				fromIndex = i;
-			mentions.push({
-				tag: body[i],
-				id: uid, fromIndex
-			});
-			i++;
-		}
-		message.reply({ body, mentions });
-	}
+  onStart: async function ({ message, event, args, api }) {
+    const { participantIDs, threadID } = event;
+    if (!participantIDs || participantIDs.length === 0) {
+      return message.reply("❌ Group member list পাওয়া যায়নি।");
+    }
+
+    const text = args.join(" ").trim();
+    const mentions = [];
+    let body = "";
+
+    const botID = api.getCurrentUserID();
+
+    for (const uid of participantIDs) {
+      if (uid === botID) continue;
+      let name = `@${uid}`;
+      try {
+        const info = await api.getUserInfo(uid);
+        name = `@${info[uid]?.name || uid}`;
+      } catch {}
+      const tag = name;
+      body += tag + " ";
+      mentions.push({ tag, id: uid });
+    }
+
+    if (text) {
+      body = `📢 ${text}\n\n` + body;
+    } else {
+      body = `📢 সবার দৃষ্টি আকর্ষণ করা হচ্ছে!\n\n` + body;
+    }
+
+    message.reply({ body: body.trim(), mentions });
+  }
 };

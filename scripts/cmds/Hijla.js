@@ -15,15 +15,6 @@ module.exports = {
     guide: "{pn} @mention or reply"
   },
 
-/* --- [ 🔐 FILE_CREATOR_INFORMATION ] ---
- * 🤖 BOT NAME: MILON BOT
- * 👤 OWNER: MILON HASAN
- * 🔗 FACEBOOK: https://www.facebook.com/share/17uGq8qVZ9/
- * 📞 WHATSAPP: +880 1912603270
- * 📍 LOCATION: NARAYANGANJ, BANGLADESH
- * 🛠️ PROJECT: MILON BOT PROJECT (2026)
- * --------------------------------------- */
-
   onStart: async function ({ api, event, message }) {
     const { threadID, messageID, mentions, messageReply } = event;
 
