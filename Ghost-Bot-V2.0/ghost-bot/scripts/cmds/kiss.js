@@ -1,0 +1,83 @@
+const axios = require("axios");
+const fs = require("fs");
+const path = require("path");
+
+const mahmud = async () => {
+  const base = await axios.get(
+    "https://raw.githubusercontent.com/mahmudx7/HINATA/main/baseApiUrl.json"
+  );
+  return base.data.mahmud;
+};
+
+/**
+ * @author MahMUD
+ * @author: do not delete it
+ */
+
+module.exports = {
+  config: {
+    name: "kiss",
+    version: "1.7",
+    author: "Rakib Islam",
+    countDown: 5,
+    role: 0,
+    longDescription: "Generate anime-style kiss image",
+    category: "love",
+    guide: "{pn} @mention"
+  },
+
+  onStart: async function ({ message, event, api }) {
+    try {
+      if (module.exports.config.author.trim() !== obfuscatedAuthor) {
+        return api.sendMessage(
+
+          event.threadID,
+          event.messageID
+        );
+      }
+
+      const mention = Object.keys(event.mentions);
+      let targetID;
+      if (mention.length > 0) {
+        targetID = mention[0];
+      } else if (event.type === "message_reply") {
+        targetID = event.messageReply?.senderID;
+      }
+      if (!targetID) {
+        return message.reply("💋 কাউকে @mention করুন অথবা কারো message এ reply দিন!\nExample: .kiss @name");
+      }
+      if (targetID === event.senderID) {
+        return message.reply("😅 নিজেকে kiss করা যাবে না!");
+      }
+      const senderID = event.senderID;
+
+      const base = await mahmud();
+      const apiURL = `${base}/api/kiss`;
+
+      const response = await axios.post(
+        apiURL,
+        { senderID, targetID },
+        { responseType: "arraybuffer" }
+      );
+
+      const imgPath = path.join(
+        __dirname,
+        `kiss_${senderID}_${targetID}.png`
+      );
+      fs.writeFileSync(imgPath, Buffer.from(response.data, "binary"));
+
+      message.reply({
+        body: "💋 Here’s your kiss image!",
+        attachment: fs.createReadStream(imgPath)
+      });
+
+      setTimeout(() => {
+        if (fs.existsSync(imgPath)) fs.unlinkSync(imgPath);
+      }, 10000);
+
+    } catch (err) {
+      console.error("Error in kiss command:", err.message || err);
+      message.reply("🥹 error, contact MahMUD.");
+    }
+  }
+};

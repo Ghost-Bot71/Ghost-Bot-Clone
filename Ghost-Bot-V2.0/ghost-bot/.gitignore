@@ -1,0 +1,13 @@
+node_modules/
+fbstate.json
+account.txt
+*.log
+scripts/cmds/cache/
+scripts/events/cache/
+scripts/events/tmp/
+.env
+ghostCustomCmds/
+database/data/*.sqlite
+database/data/*.db
+package-lock.json
+.DS_Store

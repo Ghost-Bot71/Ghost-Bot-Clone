@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ghost Bot — Owner: Rakib Islam</title>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --card: #111120;
+    --border: #1e1e3a;
+    --accent: #7c3aed;
+    --accent2: #06b6d4;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --success: #10b981;
+    --warning: #f59e0b;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  /* Animated background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse 80% 50% at 20% 20%, rgba(124,58,237,0.12) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 60% at 80% 80%, rgba(6,182,212,0.08) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.2rem 2rem;
+    border-bottom: 1px solid var(--border);
+    background: rgba(10,10,15,0.8);
+    backdrop-filter: blur(12px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo {
+    font-size: 1.3rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #a78bfa, #22d3ee);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+  }
+  .nav-links { display: flex; gap: 1.5rem; }
+  .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.9rem; transition: color .2s; }
+  .nav-links a:hover { color: var(--text); }
+
+  /* Hero */
+  .hero {
+    text-align: center;
+    padding: 6rem 2rem 4rem;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+  .ghost-icon {
+    font-size: 4rem;
+    display: block;
+    margin-bottom: 1.5rem;
+    animation: float 3s ease-in-out infinite;
+  }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+  .hero h1 {
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 800;
+    background: linear-gradient(135deg, #a78bfa 0%, #22d3ee 50%, #34d399 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1.15;
+    margin-bottom: 1rem;
+  }
+  .hero p {
+    font-size: 1.1rem;
+    color: var(--muted);
+    max-width: 560px;
+    margin: 0 auto 2rem;
+    line-height: 1.7;
+  }
+  .badge-row {
+    display: flex;
+    gap: 0.6rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 2.5rem;
+  }
+  .badge {
+    padding: 0.35rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    border: 1px solid;
+  }
+  .badge-purple { background: rgba(124,58,237,0.15); border-color: rgba(124,58,237,0.4); color: #a78bfa; }
+  .badge-cyan { background: rgba(6,182,212,0.12); border-color: rgba(6,182,212,0.4); color: #22d3ee; }
+  .badge-green { background: rgba(16,185,129,0.12); border-color: rgba(16,185,129,0.4); color: #34d399; }
+
+  /* Main content */
+  main { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem 5rem; }
+  .section-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.6rem;
+  }
+  .section-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  .section-desc { color: var(--muted); margin-bottom: 2.5rem; line-height: 1.6; }
+
+  /* Cards grid */
+  .grid { display: grid; gap: 1.2rem; margin-bottom: 4rem; }
+  .grid-2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .grid-3 { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.6rem;
+    transition: border-color .25s, transform .25s;
+  }
+  .card:hover { border-color: rgba(124,58,237,0.5); transform: translateY(-3px); }
+  .card-icon { font-size: 1.8rem; margin-bottom: 1rem; }
+  .card h3 { font-size: 1.05rem; font-weight: 600; margin-bottom: 0.5rem; }
+  .card p { color: var(--muted); font-size: 0.88rem; line-height: 1.6; }
+
+  /* Command box */
+  .cmd-box {
+    background: #0d0d1a;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.4rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+  }
+  .cmd-box .cmd-title {
+    font-size: 0.8rem;
+    color: var(--accent2);
+    font-weight: 600;
+    margin-bottom: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .cmd-line {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+    margin-bottom: 0.6rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.88rem;
+  }
+  .cmd-prefix { color: var(--success); font-weight: 700; flex-shrink: 0; }
+  .cmd-text { color: #c4b5fd; }
+  .cmd-comment { color: var(--muted); font-style: italic; font-size: 0.8rem; margin-top: 0.2rem; }
+
+  /* Tutorial steps */
+  .steps { margin-bottom: 4rem; }
+  .step {
+    display: flex;
+    gap: 1.2rem;
+    margin-bottom: 1.5rem;
+    align-items: flex-start;
+  }
+  .step-num {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+  }
+  .step-content h4 { font-size: 1rem; font-weight: 600; margin-bottom: 0.3rem; }
+  .step-content p { color: var(--muted); font-size: 0.88rem; line-height: 1.6; }
+  .step-content code {
+    background: rgba(124,58,237,0.15);
+    color: #a78bfa;
+    padding: 0.15rem 0.5rem;
+    border-radius: 5px;
+    font-size: 0.82rem;
+    font-family: monospace;
+  }
+
+  /* Owner section */
+  .owner-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 2.5rem;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 2rem;
+    align-items: center;
+    margin-bottom: 4rem;
+  }
+  .owner-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #7c3aed, #06b6d4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    flex-shrink: 0;
+  }
+  .owner-info h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.3rem; }
+  .owner-title { color: var(--accent2); font-size: 0.9rem; font-weight: 600; margin-bottom: 0.8rem; }
+  .owner-bio { color: var(--muted); font-size: 0.9rem; line-height: 1.7; margin-bottom: 1rem; }
+  .owner-tags { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .owner-tag { background: rgba(124,58,237,0.12); border: 1px solid rgba(124,58,237,0.3); color: #a78bfa; padding: 0.25rem 0.7rem; border-radius: 999px; font-size: 0.78rem; font-weight: 600; }
+
+  /* Stats */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+    margin-bottom: 4rem;
+  }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.3rem;
+    text-align: center;
+  }
+  .stat-num {
+    font-size: 2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #a78bfa, #22d3ee);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .stat-label { color: var(--muted); font-size: 0.82rem; margin-top: 0.3rem; }
+
+  /* Footer */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 2rem;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  footer strong { color: var(--text); }
+
+  /* Tabs */
+  .tab-bar {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0;
+  }
+  .tab-btn {
+    padding: 0.6rem 1.2rem;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-size: 0.9rem;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: all .2s;
+    font-weight: 500;
+  }
+  .tab-btn.active { color: var(--text); border-color: var(--accent); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  @media (max-width: 640px) {
+    .owner-card { grid-template-columns: 1fr; text-align: center; }
+    .owner-tags { justify-content: center; }
+    nav .nav-links { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">👻 Ghost Bot</div>
+  <div class="nav-links">
+    <a href="#teach">How to Teach</a>
+    <a href="#commands">Commands</a>
+    <a href="#owner">Owner</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <span class="ghost-icon">👻</span>
+  <h1>Ghost Bot<br>BBY Command Guide</h1>
+  <p>Learn how to teach Ghost Bot new responses, manage replies, and make it smarter — owned and built by Rakib Islam.</p>
+  <div class="badge-row">
+    <span class="badge badge-purple">Owner: Rakib Islam</span>
+    <span class="badge badge-cyan">Ghost Net Edition</span>
+    <span class="badge badge-green">424+ Commands</span>
+  </div>
+</section>
+
+<main>
+
+  <!-- Stats row -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-num">424+</div>
+      <div class="stat-label">Commands</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">∞</div>
+      <div class="stat-label">Things to Teach</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">24/7</div>
+      <div class="stat-label">Always Online</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">👻</div>
+      <div class="stat-label">Ghost Net Edition</div>
+    </div>
+  </div>
+
+  <!-- Teach section -->
+  <div id="teach">
+    <p class="section-label">BBY Command</p>
+    <h2 class="section-title">How to Teach Ghost Bot</h2>
+    <p class="section-desc">The <strong>.bby teach</strong> command lets you train Ghost Bot to reply to any message. Anyone in the group can teach it new things!</p>
+
+    <!-- Tabs -->
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab(this, 'tab-basic')">Basic Teach</button>
+      <button class="tab-btn" onclick="switchTab(this, 'tab-react')">Teach Reactions</button>
+      <button class="tab-btn" onclick="switchTab(this, 'tab-manage')">Manage Teaches</button>
+    </div>
+
+    <div id="tab-basic" class="tab-content active">
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h4>Basic teach — single reply</h4>
+            <p>Type: <code>.bby teach hello - Hi there!</code><br>Now whenever someone types "hello", Ghost Bot replies "Hi there!"</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h4>Multiple replies — Ghost Bot picks randomly</h4>
+            <p>Type: <code>.bby teach good morning - Good morning!, Rise and shine!, Morning!</code><br>Separate replies with commas. Bot picks one at random each time.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h4>Edit an existing teach</h4>
+            <p>Type: <code>.bby edit hello - Hey there, whats up!</code><br>Changes the stored reply for "hello".</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <h4>Check stored replies</h4>
+            <p>Type: <code>.bby msg hello</code> to see what replies are stored for "hello".</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmd-box">
+        <div class="cmd-title">Examples</div>
+        <div class="cmd-line">
+          <span class="cmd-prefix">.bby</span>
+          <span class="cmd-text">teach bhai kemon acho - Valo achi!, Alhamdulillah!, Bhalo thakis tui!</span>
+        </div>
+        <div class="cmd-comment">→ Bot picks one random reply when someone says "bhai kemon acho"</div>
+        <br>
+        <div class="cmd-line">
+          <span class="cmd-prefix">.bby</span>
+          <span class="cmd-text">teach ghost bot ki - Ami Ghost Bot!, Rakib Islam er bot!, 👻</span>
+        </div>
+        <div class="cmd-comment">→ Teaches bot to respond to "ghost bot ki"</div>
+      </div>
+    </div>
+
+    <div id="tab-react" class="tab-content">
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h4>Teach emoji reactions</h4>
+            <p>Type: <code>.bby teach react good morning - 🌅,😊,👋</code><br>Bot will react with one of those emojis when "good morning" is sent.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h4>Multiple reactions</h4>
+            <p>Separate emojis with commas. Bot picks one randomly each time.</p>
+          </div>
+        </div>
+      </div>
+      <div class="cmd-box">
+        <div class="cmd-title">Reaction Examples</div>
+        <div class="cmd-line">
+          <span class="cmd-prefix">.bby</span>
+          <span class="cmd-text">teach react love - ❤️,😍,💕,🥰</span>
+        </div>
+        <div class="cmd-comment">→ Reacts with one of those emojis when "love" is sent</div>
+        <br>
+        <div class="cmd-line">
+          <span class="cmd-prefix">.bby</span>
+          <span class="cmd-text">teach react funny - 😂,🤣,💀</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-manage" class="tab-content">
+      <div class="cmd-box">
+        <div class="cmd-title">Manage Commands</div>
+        <div class="cmd-line">
+          <span class="cmd-prefix">.bby</span>
+          <span class="cmd-text">remove hello</span>
+        </div>
+        <div class="cmd-comment">→ Removes all replies for "hello"</div>
+        <br>
+        <div class="cmd-line">
+          <span class="cmd-prefix">.bby</span>
+          <span class="cmd-text">rm hello - 2</span>
+        </div>
+        <div class="cmd-comment">→ Removes only the 2nd reply for "hello"</div>
+        <br>
+        <div class="cmd-line">
+          <span class="cmd-prefix">.bby</span>
+          <span class="cmd-text">list</span>
+        </div>
+        <div class="cmd-comment">→ Shows total teach count and reply count</div>
+        <br>
+        <div class="cmd-line">
+          <span class="cmd-prefix">.bby</span>
+          <span class="cmd-text">list all 10</span>
+        </div>
+        <div class="cmd-comment">→ Shows top 10 teachers leaderboard</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- All commands quick ref -->
+  <div id="commands" style="margin-bottom:4rem;">
+    <p class="section-label">Quick Reference</p>
+    <h2 class="section-title">All BBY Sub-commands</h2>
+    <p class="section-desc">Full list of what you can do with the .bby command.</p>
+    <div class="grid grid-3">
+      <div class="card">
+        <div class="card-icon">💬</div>
+        <h3>.bby [message]</h3>
+        <p>Chat with Ghost Bot. It responds using AI and taught responses.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📝</div>
+        <h3>.bby teach [msg] - [reply]</h3>
+        <p>Teach Ghost Bot a new reply. Separate multiple replies with commas.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">😍</div>
+        <h3>.bby teach react [msg] - [emojis]</h3>
+        <p>Teach Ghost Bot to react with emojis to a message.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">✏️</div>
+        <h3>.bby edit [msg] - [new reply]</h3>
+        <p>Update an existing taught reply.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🗑️</div>
+        <h3>.bby remove [msg]</h3>
+        <p>Delete all replies for a taught message.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📊</div>
+        <h3>.bby list all</h3>
+        <p>See the top teachers leaderboard.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔍</div>
+        <h3>.bby msg [message]</h3>
+        <p>Check what replies are stored for a specific message.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">❓</div>
+        <h3>.bby howto</h3>
+        <p>Shows the full teaching guide directly in Messenger.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🗂️</div>
+        <h3>.bby rm [msg] - [index]</h3>
+        <p>Remove a specific numbered reply from a message.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Owner Portfolio -->
+  <div id="owner">
+    <p class="section-label">About the Owner</p>
+    <h2 class="section-title">Rakib Islam</h2>
+    <p class="section-desc">The developer and owner of Ghost Bot — Ghost Net Edition.</p>
+
+    <div class="owner-card">
+      <div class="owner-avatar">👤</div>
+      <div class="owner-info">
+        <h2>Rakib Islam</h2>
+        <div class="owner-title">Ghost Bot Developer & Owner</div>
+        <p class="owner-bio">
+          Developer of Ghost Bot — Ghost Net Edition. Built a fully-featured Facebook Messenger bot with 424+ commands, AI chat via the BBY command, anime features, group management tools, auto-reactions, and much more.
+          The bot is designed to run 24/7 on Replit and GitHub Workflows, serving multiple group chats simultaneously.
+        </p>
+        <div class="owner-tags">
+          <span class="owner-tag">Bot Developer</span>
+          <span class="owner-tag">JavaScript</span>
+          <span class="owner-tag">Node.js</span>
+          <span class="owner-tag">Ghost Net Edition</span>
+          <span class="owner-tag">424+ Commands</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Skills/features -->
+    <div class="grid grid-2">
+      <div class="card">
+        <div class="card-icon">🤖</div>
+        <h3>Ghost Bot</h3>
+        <p>424+ commands including AI chat (BBY), anime tools, group management, auto-reactions, media downloads, and more. Runs 24/7.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">💬</div>
+        <h3>BBY AI System</h3>
+        <p>A teachable AI chat system for Facebook Messenger. Anyone can train it using the .bby teach command.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔧</div>
+        <h3>Custom FCA</h3>
+        <p>Modified Facebook Chat API with anti-detection headers, rotating user agents, and reduced rate-limiting risk.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">⚙️</div>
+        <h3>Ghost Net Edition</h3>
+        <p>Custom-built bot framework on top of GoatBot V2. Full rebranding, author system, and production-ready deployment.</p>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <p>👻 <strong>Ghost Bot — Ghost Net Edition</strong> &nbsp;|&nbsp; Owner: <strong>Rakib Islam</strong> &nbsp;|&nbsp; All rights reserved © 2026</p>
+</footer>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+</script>
+</body>
+</html>
