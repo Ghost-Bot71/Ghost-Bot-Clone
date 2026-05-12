@@ -25,6 +25,28 @@ const VOICES = {
   ms:  { se: "Salli",    gtl: "ms",    label: "🇲🇾 Malay"      },
 };
 
+const LANG_NAMES = {
+  english: "en", bangla: "bn", bengali: "bn", বাংলা: "bn", বাঙলা: "bn",
+  japanese: "ja", japan: "ja", anime: "ja",
+  korean: "ko", korea: "ko",
+  hindi: "hi", india: "hi",
+  chinese: "zh", china: "zh",
+  spanish: "es", spain: "es",
+  french: "fr", france: "fr",
+  german: "de", germany: "de",
+  arabic: "ar", arab: "ar",
+  russian: "ru", russia: "ru",
+  portuguese: "pt", brazil: "pt",
+  italian: "it", italy: "it",
+  turkish: "tr", turkey: "tr",
+  dutch: "nl",
+  indonesian: "id", indonesia: "id",
+  thai: "th", thailand: "th",
+  vietnamese: "vi", vietnam: "vi",
+  urdu: "ur", pakistan: "ur",
+  malay: "ms", malaysia: "ms",
+};
+
 async function tryStreamElements(text, voice) {
   const url = `https://api.streamelements.com/kappa/v2/speech?voice=${voice}&text=${encodeURIComponent(text)}`;
   const res = await axios.get(url, {
@@ -60,7 +82,7 @@ async function tryTikTokTTS(text, lang) {
 module.exports = {
   config: {
     name: "anivoice",
-    aliases: ["anitts", "anisay", "animesay", "voicegirl"],
+    aliases: ["anitts", "anisay", "animesay", "voicegirl", "av"],
     version: "4.0",
     author: "Rakib Islam",
     countDown: 5,
@@ -98,12 +120,14 @@ module.exports = {
       );
     }
 
-    const langCode = args[0].toLowerCase();
+    const rawLang = args[0].toLowerCase().trim();
+    const langCode = VOICES[rawLang] ? rawLang : (LANG_NAMES[rawLang] || null);
     const textParts = args.slice(1).join(" ").trim();
 
-    if (!VOICES[langCode]) {
+    if (!langCode || !VOICES[langCode]) {
       return message.reply(
-        `❌ Unknown language: "${langCode}"\nType .anivoice list to see all 20 languages.`
+        `❌ Language বুঝতে পারিনি: "${args[0]}"\n\n` +
+        `✅ Code দিয়ে try করো:\n.av bn [text] — Bangla\n.av en [text] — English\n.av ja [text] — Japanese\n\nসব দেখতে: .av list`
       );
     }
     if (!textParts) {

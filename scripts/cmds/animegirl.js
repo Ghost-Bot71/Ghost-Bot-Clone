@@ -45,7 +45,7 @@ async function generateAnimeVoice(text) {
 module.exports = {
   config: {
     name: "animegirl",
-    aliases: ["agirl", "animevoice", "av"],
+    aliases: ["agirl", "animevoice"],
     version: "1.0",
     author: "Rakib Islam",
     countDown: 10,
