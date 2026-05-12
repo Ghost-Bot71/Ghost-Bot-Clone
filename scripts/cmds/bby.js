@@ -141,12 +141,32 @@ module.exports = {
 
   onStart: async function ({ api, event, args, usersData }) {
     const { threadID, messageID, senderID } = event;
+    const fsp = require("fs-extra"), pathp = require("path");
+    const sp = pathp.join(process.cwd(), "data", "ghostSettings.json");
+
+    // BBY on/off — admin only
+    if (args[0] === "on" || args[0] === "off") {
+      const adminBot = global.GoatBot.config.adminBot || [];
+      const threadData = global.db?.allThreadData?.find(t => t.threadID == threadID);
+      const adminIDs = (threadData?.adminIDs || []).map(a => a.adminID || a);
+      const isAdmin = adminBot.includes(senderID) || adminIDs.includes(senderID);
+      if (!isAdmin) return api.sendMessage("❌ শুধু Group Admin `.bby on/off` ব্যবহার করতে পারবে!", threadID, messageID);
+      const s = fsp.existsSync(sp) ? fsp.readJsonSync(sp) : {};
+      if (!s[threadID]) s[threadID] = {};
+      s[threadID].bbyEnabled = args[0] === "on";
+      fsp.ensureDirSync(pathp.dirname(sp));
+      fsp.writeJsonSync(sp, s, { spaces: 2 });
+      return api.sendMessage(
+        args[0] === "on"
+          ? "✅ BBY Mode চালু হয়েছে! 😊\nBot এখন chat এ সবার message এ reply দেবে।\n👻 Ghost Bot"
+          : "🔇 BBY Mode বন্ধ হয়েছে!\nBot আর chat এ reply দেবে না।\n👻 Ghost Bot",
+        threadID, messageID
+      );
+    }
 
     // BBY on/off check per thread
     try {
-      const fs = require("fs-extra"), path = require("path");
-      const sp = path.join(process.cwd(), "data", "ghostSettings.json");
-      const s = fs.existsSync(sp) ? fs.readJsonSync(sp) : {};
+      const s = fsp.existsSync(sp) ? fsp.readJsonSync(sp) : {};
       if (s[threadID]?.bbyEnabled === false) return;
     } catch {}
 
