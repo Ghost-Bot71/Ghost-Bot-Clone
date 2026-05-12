@@ -141,6 +141,15 @@ module.exports = {
 
   onStart: async function ({ api, event, args, usersData }) {
     const { threadID, messageID, senderID } = event;
+
+    // BBY on/off check per thread
+    try {
+      const fs = require("fs-extra"), path = require("path");
+      const sp = path.join(process.cwd(), "data", "ghostSettings.json");
+      const s = fs.existsSync(sp) ? fs.readJsonSync(sp) : {};
+      if (s[threadID]?.bbyEnabled === false) return;
+    } catch {}
+
     const link = `${BASE_API}/baby`;
     const dipto = args.join(" ").toLowerCase().trim();
     const uid = senderID;
@@ -350,6 +359,14 @@ module.exports = {
   onChat: async function ({ api, event }) {
     const { threadID, messageID, senderID, body } = event;
     if (!body) return;
+
+    // BBY on/off check per thread
+    try {
+      const fs = require("fs-extra"), path = require("path");
+      const sp = path.join(process.cwd(), "data", "ghostSettings.json");
+      const s = fs.existsSync(sp) ? fs.readJsonSync(sp) : {};
+      if (s[threadID]?.bbyEnabled === false) return;
+    } catch {}
     const text = body.toLowerCase().trim();
     const triggers = ["bby ", "bot ", "jan ", "babu ", "janu ", "ghost "];
     const matched = triggers.find(t => text.startsWith(t));

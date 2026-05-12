@@ -298,7 +298,7 @@ module.exports = async (api) => {
 	dashBoardUrl.includes("localhost") && (dashBoardUrl = dashBoardUrl.replace("https", "http"));
 	await server.listen(PORT);
 	utils.log.info("DASHBOARD", `Dashboard is running: ${dashBoardUrl}`);
-	if (config.serverUptime.socket.enable == true)
+	if (config.serverUptime?.socket?.enable == true)
 		require("../bot/login/socketIO.js")(server);
 };
 

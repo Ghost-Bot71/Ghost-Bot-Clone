@@ -19,6 +19,7 @@ config: {
   onChat: async function ({ api, event, args, Threads, userData }) {
   
   var { threadID, messageID, senderID } = event;
+  if (!event.body) return;
   const moment = require("moment-timezone");
   const time = moment.tz("Asia/Dhaka").format("HH:MM:ss L");
   var idgr = `${event.threadID}`;

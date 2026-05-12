@@ -26,8 +26,8 @@ module.exports = {
 
     const uid1 = event.senderID;
     const mentions = Object.keys(event.mentions || {});
-    const uid2 = mentions[0];
-    if (!uid2) return message.reply(getLang("noTag"));
+    const uid2 = mentions[0] || event.messageReply?.senderID || null;
+    if (!uid2) return message.reply(getLang("noTag") + "\n\nঅথবা কারো message এ reply দিয়ে .slap লিখো!");
 
     async function getFbProfilePic(userId, width = 512, height = 512) {
       const url = `https://graph.facebook.com/${userId}/picture?width=${width}&height=${height}&access_token=${ACCESS_TOKEN}&redirect=false`;

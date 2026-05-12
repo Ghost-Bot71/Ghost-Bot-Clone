@@ -224,7 +224,7 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
                 event.mentions = { [event.messageReply.senderID]: "" };
             } else {
                 // FALLBACK: Try to resolve the first tag like @Arisa by looking up group members
-                const tagMatch = body.match(/@([^ ]+)/);
+                const tagMatch = body && body.match(/@([^ ]+)/);
                 if (tagMatch) {
                     const tagName = tagMatch[1].toLowerCase();
                     const info = await api.getThreadInfo(threadID);
@@ -287,6 +287,17 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
             // —————  CHECK BANNED OR ONLY ADMIN BOX  ————— //
             if (isBannedOrOnlyAdmin(userData, threadData, senderID, threadID, isGroup, commandName, message, langCode))
                 return;
+            // ——————  GHOST BOT: SILENT MODE CHECK  ———————— //
+            try {
+                const _gs = global.GoatBot.ghostSettings || {};
+                const _tgs = _gs[threadID] || {};
+                if (_tgs.silentMode === true) {
+                    const _admBot = global.GoatBot.config.adminBot || [];
+                    const _admIDs = threadData?.adminIDs || [];
+                    const _wl = _tgs.silentWhitelist || [];
+                    if (!_admBot.includes(senderID) && !_admIDs.includes(senderID) && !_wl.includes(senderID)) return;
+                }
+            } catch {}
             if (!command)
                 if (!hideNotiMessage.commandNotFound)
                     return await message.reply(
