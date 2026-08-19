@@ -1,221 +1,556 @@
-// Owner Command — Neon PFP Canvas GIF — Rakib Islam / Ghost Net Edition
-
-const { createCanvas, loadImage } = require("canvas");
-const GIFEncoder = require("gifencoder");
-const axios = require("axios");
 const fs = require("fs-extra");
 const path = require("path");
+const axios = require("axios");
+const { createCanvas, loadImage } = require("canvas");
+const GIFEncoder = require("gifencoder");
 
-const OWNER_UID = "61575436812912";
-const BIO = {
-  name: "Rakib Islam",
-  location: "Saidpur, Nilphamari",
-  status: "Single 💔",
-  religion: "Islam ☪️",
-  class: "Secret 🔒",
-  job: "Student 📚",
-  hobby: "Gaming & Travelling 🎮",
-  prefix: ".",
+module.exports.config = {
+  name: "owner",
+  version: "1.0.0",
+  hasPermission: 0,
+  credits: "Rakib Islam",
+  description: "Animated RGB owner information card",
+  commandCategory: "info",
+  usages: "",
+  cooldowns: 10
 };
 
-function roundRect(ctx, x, y, w, h, r, fill, stroke) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.arcTo(x + w, y, x + w, y + h, r);
-  ctx.arcTo(x + w, y + h, x, y + h, r);
-  ctx.arcTo(x, y + h, x, y, r);
-  ctx.arcTo(x, y, x + w, y, r);
-  ctx.closePath();
-  if (fill) ctx.fill();
-  if (stroke) ctx.stroke();
+const OWNER = {
+  name: "Rakib Islam",
+  location: "Saidpur, Nilphamary",
+  relationship: "Single",
+  region: "Islam",
+  className: "Hidden",
+  prefix: ".",
+  role: "Bot Owner",
+  uid: "61592104482524"
+};
+
+function rgb(t) {
+  const r = Math.sin(t) * 127 + 128;
+  const g =
+    Math.sin(t + (Math.PI * 2) / 3) * 127 + 128;
+  const b =
+    Math.sin(t + (Math.PI * 4) / 3) * 127 + 128;
+
+  return `rgb(${r | 0}, ${g | 0}, ${b | 0})`;
 }
 
-async function buildOwnerCard(uid) {
-  const W = 820, H = 400;
-  const cacheDir = path.join(__dirname, "cache");
-  await fs.ensureDir(cacheDir);
-  const outPath = path.join(cacheDir, `owner_neon_${Date.now()}.gif`);
+function roundedRect(ctx, x, y, w, h, r) {
+  const rr = Math.min(r, w / 2, h / 2);
 
-  let avatar = null;
-  try {
-    const avUrl = `https://graph.facebook.com/${uid}/picture?width=512&height=512&access_token=6628568379|c1e620fa708a1d5696fb991c1bde5662`;
-    const res = await axios.get(avUrl, { responseType: "arraybuffer", timeout: 12000 });
-    avatar = await loadImage(Buffer.from(res.data));
-  } catch {}
+  ctx.beginPath();
+  ctx.moveTo(x + rr, y);
+  ctx.arcTo(x + w, y, x + w, y + h, rr);
+  ctx.arcTo(x + w, y + h, x, y + h, rr);
+  ctx.arcTo(x, y + h, x, y, rr);
+  ctx.arcTo(x, y, x + w, y, rr);
+  ctx.closePath();
+}
 
-  const NEON = ["#ff00ff","#00ffff","#ff6600","#00ff88","#ffd700","#ff0055","#aa00ff","#00ccff"];
+function drawBackground(ctx, width, height, frame) {
+  const hue = (frame * 8) % 360;
 
-  const enc = new GIFEncoder(W, H);
-  const ws = fs.createWriteStream(outPath);
-  enc.createReadStream().pipe(ws);
-  enc.start(); enc.setRepeat(0); enc.setDelay(110); enc.setQuality(8);
+  const bg = ctx.createLinearGradient(
+    0,
+    0,
+    width,
+    height
+  );
 
-  for (let f = 0; f < 14; f++) {
-    const c1 = NEON[f % NEON.length];
-    const c2 = NEON[(f + 3) % NEON.length];
-    const c3 = NEON[(f + 5) % NEON.length];
+  bg.addColorStop(
+    0,
+    `hsl(${hue}, 45%, 7%)`
+  );
 
-    const cv = createCanvas(W, H);
-    const ctx = cv.getContext("2d");
+  bg.addColorStop(
+    0.5,
+    `hsl(${(hue + 80) % 360}, 40%, 5%)`
+  );
 
-    // Background gradient
-    const bg = ctx.createLinearGradient(0, 0, W, H);
-    bg.addColorStop(0, "#030008"); bg.addColorStop(0.5, "#08001a"); bg.addColorStop(1, "#030008");
-    ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+  bg.addColorStop(
+    1,
+    `hsl(${(hue + 180) % 360}, 45%, 7%)`
+  );
 
-    // Particles
-    for (let i = 0; i < 55; i++) {
-      const a = (Math.sin((f * 0.5 + i) * 0.7) + 1) * 0.12 + 0.04;
-      const [r, g, b] = [parseInt(c1.slice(1,3),16), parseInt(c1.slice(3,5),16), parseInt(c1.slice(5,7),16)];
-      ctx.fillStyle = `rgba(${r},${g},${b},${a})`;
-      ctx.beginPath();
-      ctx.arc((Math.sin(i * 2.39 + f * 0.1) * 0.5 + 0.5) * W, (Math.cos(i * 3.14 + f * 0.08) * 0.5 + 0.5) * H, Math.random() * 2 + 0.5, 0, Math.PI * 2);
-      ctx.fill();
-    }
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, width, height);
 
-    // Card
-    const pad = 22;
-    ctx.fillStyle = "rgba(4,0,18,0.85)";
-    roundRect(ctx, pad, pad, W - pad * 2, H - pad * 2, 24, true, false);
+  // Moving stars / particles
+  for (let i = 0; i < 45; i++) {
+    const x =
+      (i * 83 + frame * (1 + (i % 3))) %
+      width;
 
-    // Animated outer neon border
-    ctx.lineWidth = 3.5; ctx.strokeStyle = c1; ctx.shadowColor = c1; ctx.shadowBlur = 30;
-    roundRect(ctx, pad, pad, W - pad * 2, H - pad * 2, 24, false, true);
+    const y =
+      (i * 47 + frame * (i % 2)) %
+      height;
 
-    // Inner border
-    ctx.lineWidth = 1.5; ctx.strokeStyle = c2; ctx.shadowColor = c2; ctx.shadowBlur = 14;
-    roundRect(ctx, pad + 9, pad + 9, W - pad * 2 - 18, H - pad * 2 - 18, 18, false, true);
-    ctx.shadowBlur = 0;
+    const size =
+      0.7 + (i % 3) * 0.45;
 
-    // ── Profile Pic (left) ──
-    const PX = 102, PY = H / 2, PR = 92;
+    ctx.globalAlpha =
+      0.25 + ((i + frame) % 5) / 10;
 
-    // Glow rings
-    for (let ring = 4; ring >= 1; ring--) {
-      const rc = ring <= 2 ? c1 : c2;
-      ctx.beginPath(); ctx.arc(PX, PY, PR + ring * 7, 0, Math.PI * 2);
-      ctx.strokeStyle = rc; ctx.lineWidth = 2.5;
-      ctx.shadowColor = rc; ctx.shadowBlur = ring <= 2 ? 22 : 10; ctx.stroke();
-    }
-    ctx.shadowBlur = 0;
+    ctx.fillStyle = rgb(
+      frame * 0.08 + i * 0.25
+    );
 
-    // PFP clip
-    ctx.save();
-    ctx.beginPath(); ctx.arc(PX, PY, PR, 0, Math.PI * 2); ctx.clip();
-    if (avatar) {
-      ctx.drawImage(avatar, PX - PR, PY - PR, PR * 2, PR * 2);
-    } else {
-      const aFill = ctx.createLinearGradient(PX - PR, PY - PR, PX + PR, PY + PR);
-      aFill.addColorStop(0, "#1a003a"); aFill.addColorStop(1, "#003a3a");
-      ctx.fillStyle = aFill; ctx.fillRect(PX - PR, PY - PR, PR * 2, PR * 2);
-      ctx.font = "bold 70px Arial"; ctx.fillStyle = c1;
-      ctx.textAlign = "center"; ctx.textBaseline = "middle";
-      ctx.fillText("👑", PX, PY);
-    }
-    ctx.restore();
+    ctx.beginPath();
+    ctx.arc(
+      x,
+      y,
+      size,
+      0,
+      Math.PI * 2
+    );
 
-    // ── Header text ──
-    const TX = PX + PR + 35;
-    ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
-
-    ctx.font = "bold 13px Arial"; ctx.fillStyle = c3;
-    ctx.shadowColor = c3; ctx.shadowBlur = 14;
-    ctx.fillText("👻  GHOST NET EDITION", TX, pad + 44);
-
-    ctx.font = "bold 26px Arial"; ctx.fillStyle = "#ffffff";
-    ctx.shadowColor = c1; ctx.shadowBlur = 18;
-    ctx.fillText("BOT OWNER PROFILE", TX, pad + 74);
-    ctx.shadowBlur = 0;
-
-    // Divider line
-    const lineGrad = ctx.createLinearGradient(TX, 0, W - pad - 10, 0);
-    lineGrad.addColorStop(0, c1); lineGrad.addColorStop(1, "transparent");
-    ctx.fillStyle = lineGrad; ctx.fillRect(TX, pad + 82, W - TX - pad - 10, 1.5);
-
-    // ── Info fields ──
-    const fields = [
-      ["👤 Name",     BIO.name],
-      ["📍 Location", BIO.location],
-      ["💍 Status",   BIO.status],
-      ["🎓 Class",    BIO.class],
-      ["💼 Job",      BIO.job],
-      ["🎮 Hobby",    BIO.hobby],
-      ["🔗 FB",       `fb.com/${uid}`],
-    ];
-
-    let fy = pad + 112;
-    for (const [label, val] of fields) {
-      ctx.font = "10px monospace"; ctx.fillStyle = "rgba(180,180,255,0.55)"; ctx.shadowBlur = 0;
-      ctx.fillText(label, TX, fy);
-      ctx.font = "bold 14px Arial"; ctx.fillStyle = "#ffffff";
-      ctx.shadowColor = c2; ctx.shadowBlur = 5;
-      ctx.fillText(String(val).slice(0, 48), TX + 118, fy);
-      ctx.shadowBlur = 0;
-      fy += 28;
-    }
-
-    // ── Footer ──
-    ctx.font = "bold 12px Arial"; ctx.textAlign = "center";
-    ctx.fillStyle = c3; ctx.shadowColor = c3; ctx.shadowBlur = 12;
-    ctx.fillText("◆  EXCLUSIVE BOT OWNER — Ghost Net Royal  ◆", W / 2, H - 32);
-    ctx.shadowBlur = 0;
-
-    // Corner accent squares
-    [[pad + 2, pad + 2], [W - pad - 14, pad + 2], [pad + 2, H - pad - 14], [W - pad - 14, H - pad - 14]].forEach(([cx, cy]) => {
-      ctx.fillStyle = c1; ctx.shadowColor = c1; ctx.shadowBlur = 10;
-      ctx.fillRect(cx, cy, 12, 12);
-      ctx.shadowBlur = 0;
-    });
-
-    enc.addFrame(ctx);
+    ctx.fill();
   }
 
-  enc.finish();
-  await new Promise(r => ws.on("finish", r));
-  return outPath;
+  ctx.globalAlpha = 1;
 }
 
-module.exports = {
-  config: {
-    name: "owner",
-    aliases: ["rakibboss", "abba", "botowner", "malik", "boss"],
-    version: "3.0",
-    author: "Rakib Islam",
-    countDown: 5,
-    role: 0,
-    shortDescription: { en: "Owner info — Neon PFP animated card 👑" },
-    longDescription: { en: "Animated neon GIF card with profile picture & owner info." },
-    category: "info",
-    guide: { en: "{p}owner" }
-  },
+function drawProfile(
+  ctx,
+  image,
+  cx,
+  cy,
+  radius,
+  frame
+) {
+  ctx.save();
 
-  onStart: async function ({ message, event }) {
-    await message.reaction("⏳", event.messageID);
+  // RGB glow
+  ctx.shadowBlur = 22;
+  ctx.shadowColor = rgb(frame * 0.18);
 
-    const infoText =
-      `╔══════════════════════════╗\n` +
-      `║  👑  BOT OWNER INFO  👑   ║\n` +
-      `╚══════════════════════════╝\n\n` +
-      `  👤 Name     : ${BIO.name}\n` +
-      `  📍 Location : ${BIO.location}\n` +
-      `  💍 Status   : ${BIO.status}\n` +
-      `  ☪️  Religion : ${BIO.religion}\n` +
-      `  🎓 Class    : ${BIO.class}\n` +
-      `  💼 Job      : ${BIO.job}\n` +
-      `  🎮 Hobby    : ${BIO.hobby}\n` +
-      `  🔑 Prefix   : ${BIO.prefix}\n` +
-      `  🔗 FB       : fb.com/${OWNER_UID}\n` +
-      `━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-      `  💀 Powered by Ghost Net Edition`;
+  ctx.strokeStyle = rgb(frame * 0.18);
+  ctx.lineWidth = 7;
+
+  ctx.beginPath();
+  ctx.arc(
+    cx,
+    cy,
+    radius + 4,
+    0,
+    Math.PI * 2
+  );
+
+  ctx.stroke();
+
+  ctx.shadowBlur = 0;
+
+  // Circular profile image
+  ctx.beginPath();
+  ctx.arc(
+    cx,
+    cy,
+    radius,
+    0,
+    Math.PI * 2
+  );
+
+  ctx.clip();
+
+  const scale = Math.max(
+    (radius * 2) / image.width,
+    (radius * 2) / image.height
+  );
+
+  const w = image.width * scale;
+  const h = image.height * scale;
+
+  ctx.drawImage(
+    image,
+    cx - w / 2,
+    cy - h / 2,
+    w,
+    h
+  );
+
+  ctx.restore();
+}
+
+function drawCard(
+  ctx,
+  width,
+  height,
+  frame,
+  profileImage
+) {
+  drawBackground(
+    ctx,
+    width,
+    height,
+    frame
+  );
+
+  // Outer RGB border
+  ctx.save();
+
+  ctx.shadowBlur = 24;
+  ctx.shadowColor = rgb(frame * 0.16);
+
+  ctx.strokeStyle = rgb(frame * 0.16);
+  ctx.lineWidth = 7;
+
+  roundedRect(
+    ctx,
+    10,
+    10,
+    width - 20,
+    height - 20,
+    22
+  );
+
+  ctx.stroke();
+  ctx.restore();
+
+  // Main black panel
+  ctx.save();
+
+  roundedRect(
+    ctx,
+    34,
+    34,
+    width - 68,
+    height - 68,
+    18
+  );
+
+  ctx.fillStyle =
+    "rgba(0, 0, 0, 0.72)";
+
+  ctx.fill();
+
+  ctx.strokeStyle =
+    "rgba(255,255,255,0.10)";
+
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  ctx.restore();
+
+  // Profile
+  drawProfile(
+    ctx,
+    profileImage,
+    width / 2,
+    115,
+    65,
+    frame
+  );
+
+  // Name
+  ctx.save();
+
+  ctx.textAlign = "center";
+  ctx.font = "bold 29px Sans";
+
+  ctx.shadowBlur = 15;
+  ctx.shadowColor = rgb(frame * 0.18);
+
+  ctx.fillStyle = rgb(
+    frame * 0.18
+  );
+
+  ctx.fillText(
+    OWNER.name.toUpperCase(),
+    width / 2,
+    210
+  );
+
+  ctx.restore();
+
+  const rows = [
+    ["LOCATION", OWNER.location],
+    ["RELATIONSHIP", OWNER.relationship],
+    ["REGION", OWNER.region],
+    ["CLASS", OWNER.className],
+    ["PREFIX", OWNER.prefix],
+    ["ROLE", OWNER.role]
+  ];
+
+  let y = 250;
+
+  rows.forEach(
+    ([label, value], index) => {
+      const rowH = 45;
+
+      ctx.save();
+
+      roundedRect(
+        ctx,
+        62,
+        y,
+        width - 124,
+        rowH - 6,
+        8
+      );
+
+      ctx.fillStyle =
+        index % 2
+          ? "rgba(0, 90, 90, 0.48)"
+          : "rgba(0, 55, 65, 0.55)";
+
+      ctx.fill();
+
+      ctx.strokeStyle =
+        "rgba(255,255,255,0.08)";
+
+      ctx.stroke();
+
+      // Left text
+      ctx.textAlign = "left";
+      ctx.font = "bold 15px Sans";
+
+      ctx.fillStyle = rgb(
+        frame * 0.18 + index * 0.7
+      );
+
+      ctx.fillText(
+        `>> ${label}`,
+        76,
+        y + 26
+      );
+
+      // Right text
+      ctx.textAlign = "right";
+      ctx.font = "15px Sans";
+      ctx.fillStyle = "#eeeeee";
+
+      ctx.fillText(
+        String(value),
+        width - 78,
+        y + 26
+      );
+
+      ctx.restore();
+
+      y += rowH;
+    }
+  );
+
+  // Bottom text
+  ctx.save();
+
+  ctx.textAlign = "center";
+  ctx.font = "bold 13px Sans";
+
+  ctx.fillStyle =
+    "rgba(255,255,255,0.65)";
+
+  ctx.fillText(
+    "✦ BOT OWNER ✦",
+    width / 2,
+    height - 48
+  );
+
+  ctx.restore();
+}
+
+async function getProfileImage(api) {
+  const info = await new Promise(
+    (resolve, reject) => {
+      api.getUserInfo(
+        OWNER.uid,
+        (err, data) => {
+          if (err) {
+            return reject(err);
+          }
+
+          resolve(
+            data && data[OWNER.uid]
+          );
+        }
+      );
+    }
+  );
+
+  if (
+    !info ||
+    !info.thumbSrc
+  ) {
+    throw new Error(
+      "Could not get the owner's profile picture."
+    );
+  }
+
+  const response =
+    await axios.get(
+      info.thumbSrc,
+      {
+        responseType:
+          "arraybuffer",
+        timeout: 20000
+      }
+    );
+
+  return loadImage(
+    Buffer.from(
+      response.data
+    )
+  );
+}
+
+async function createOwnerGif(
+  api,
+  outputPath
+) {
+  const width = 600;
+  const height = 760;
+
+  // Number of GIF frames
+  const frames = 30;
+
+  const profileImage =
+    await getProfileImage(api);
+
+  const encoder =
+    new GIFEncoder(
+      width,
+      height
+    );
+
+  const canvas =
+    createCanvas(
+      width,
+      height
+    );
+
+  const ctx =
+    canvas.getContext("2d");
+
+  encoder.start();
+
+  // Infinite loop
+  encoder.setRepeat(0);
+
+  // Frame delay
+  encoder.setDelay(90);
+
+  // GIF quality
+  encoder.setQuality(8);
+
+  for (
+    let frame = 0;
+    frame < frames;
+    frame++
+  ) {
+    drawCard(
+      ctx,
+      width,
+      height,
+      frame,
+      profileImage
+    );
+
+    encoder.addFrame(ctx);
+  }
+
+  encoder.finish();
+
+  await new Promise(
+    (resolve, reject) => {
+      const output =
+        fs.createWriteStream(
+          outputPath
+        );
+
+      const stream =
+        encoder.createReadStream();
+
+      stream.on(
+        "error",
+        reject
+      );
+
+      output.on(
+        "error",
+        reject
+      );
+
+      output.on(
+        "finish",
+        resolve
+      );
+
+      stream.pipe(output);
+    }
+  );
+}
+
+module.exports.run =
+  async function ({
+    api,
+    event
+  }) {
+    const cacheDir =
+      path.join(
+        __dirname,
+        "cache"
+      );
+
+    const outputPath =
+      path.join(
+        cacheDir,
+        `owner_${event.senderID}_${Date.now()}.gif`
+      );
 
     try {
-      const gifPath = await buildOwnerCard(OWNER_UID);
-      await message.reaction("✅", event.messageID);
-      await message.reply({ body: infoText, attachment: fs.createReadStream(gifPath) });
-      setTimeout(() => { try { fs.unlinkSync(gifPath); } catch {} }, 18000);
-    } catch {
-      await message.reaction("✅", event.messageID);
-      await message.reply(infoText);
+      await fs.ensureDir(
+        cacheDir
+      );
+
+      api.sendMessage(
+        "⏳ RGB Owner GIF তৈরি হচ্ছে...",
+        event.threadID,
+        event.messageID
+      );
+
+      await createOwnerGif(
+        api,
+        outputPath
+      );
+
+      return api.sendMessage(
+        {
+          body:
+            "👑 𝗢𝗪𝗡𝗘𝗥 𝗜𝗡𝗙𝗢",
+
+          attachment:
+            fs.createReadStream(
+              outputPath
+            )
+        },
+
+        event.threadID,
+
+        () => {
+          fs.remove(
+            outputPath
+          ).catch(() => {});
+        }
+      );
+    } catch (error) {
+      console.error(
+        "Owner GIF Error:",
+        error
+      );
+
+      await fs.remove(
+        outputPath
+      ).catch(() => {});
+
+      return api.sendMessage(
+        `❌ Owner GIF তৈরি করা যায়নি.\n\n${
+          error.message || error
+        }`,
+
+        event.threadID,
+
+        event.messageID
+      );
     }
-  }
-};
+  };
